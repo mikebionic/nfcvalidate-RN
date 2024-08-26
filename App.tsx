@@ -1,117 +1,81 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useEffect} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import NfcManager from 'react-native-nfc-manager';
+import Game from './src/Game';
+// import AndroidPrompt from './src/AndroidPrompt';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+function App() {
+  const [hasNfc, setHasNfc] = React.useState(false);
+  const [enabled, setEnabled] = React.useState(false);
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  useEffect(() => {
+    async function checkNfc() {
+      const supported = await NfcManager.isSupported();
+      if (supported) {
+        await NfcManager.start();
+        setEnabled(await NfcManager.isEnabled());
+      }
+      setHasNfc(supported);
+    }
+    checkNfc();
+  }, []);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  // async function readNdef() {
+  //   try {
+  //     await NfcManager.requestTechnology(NfcTech.Ndef);
+  //     const tag = await NfcManager.getTag();
+  //     console.warn('Tag found', tag);
+  //   } catch (ex) {
+  //     console.warn('Oops!', ex);
+  //   } finally {
+  //     NfcManager.cancelTechnologyRequest();
+  //   }
+  // }
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+  if (hasNfc) {
+    return null;
+  } else if (!hasNfc) {
+    return (
+      <View style={styles.wrapper}>
+        <Text>Your device doesn't support NFC</Text>
+        {/* <TouchableOpacity
+          onPress={() => {
+            promptRef.current.setVisible(true);
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <Text>Test</Text>
+        </TouchableOpacity>
+        <AndroidPrompt ref={promptRef} /> */}
+      </View>
+    );
+  } else if (!enabled) {
+    return (
+      <View style={styles.wrapper}>
+        <Text> Your NFC is not enabled </Text>
+        <TouchableOpacity
+          onPress={() => {
+            NfcManager.goToNfcSetting();
+          }}>
+          <Text>Go To Settings</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    // <SafeAreaView style={styles.wrapper}>
+    //   <TouchableOpacity onPress={readNdef}>
+    //     <Text>Scan a Tag</Text>
+    //   </TouchableOpacity>
+    // </SafeAreaView>
+    <Game />
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  wrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
